@@ -132,7 +132,7 @@ function App() {
     if (response.ok) {
       setFavorites(favorites.filter((favorite) => favorite.id !== id));
     } else {
-      console.log(json);
+      console.log();
     }
   };
 
