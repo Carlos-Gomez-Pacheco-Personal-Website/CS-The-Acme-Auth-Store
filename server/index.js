@@ -148,10 +148,26 @@ const init = async () => {
   console.log(await fetchProducts());
 
   console.log(await fetchFavorites(moe.id));
-  const favorite = await createFavorite({
-    user_id: moe.id,
-    product_id: foo.id,
-  });
+
+  // const favorite = await createFavorite({
+  //   user_id: moe.id,
+  //   product_id: foo.id,
+  // });
+
+  const users = await fetchUsers();
+  const products = await fetchProducts();
+  for (let user of users) {
+    for (let product of products) {
+      const favorite = await createFavorite({
+        user_id: user.id,
+        product_id: product.id,
+      });
+      console.log(
+        `Created favorite for user ${user.username} with product ${product.name}`
+      );
+    }
+  }
+
   app.listen(port, () => console.log(`listening on port ${port}`));
 };
 
