@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
+import "./index.css";
 
 const Login = ({ login }) => {
   const [username, setUsername] = useState("");
