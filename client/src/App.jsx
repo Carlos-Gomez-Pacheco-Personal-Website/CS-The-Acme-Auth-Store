@@ -30,6 +30,42 @@ const Login = ({ login }) => {
 Login.propTypes = {
   login: PropTypes.func,
 };
+// Register
+const Register = ({ register }) => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const submit = async (ev) => {
+    ev.preventDefault();
+    try {
+      await register({ username, password });
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <form onSubmit={submit}>
+      <input
+        value={username}
+        placeholder="username"
+        onChange={(ev) => setUsername(ev.target.value)}
+      />
+      <input
+        value={password}
+        placeholder="password"
+        onChange={(ev) => setPassword(ev.target.value)}
+      />
+      <button disabled={!username || !password}>Register</button>
+      {error && <div className="error">{error}</div>}
+    </form>
+  );
+};
+
+Register.propTypes = {
+  register: PropTypes.func,
+};
 
 function App() {
   const [auth, setAuth] = useState({});
@@ -142,10 +178,32 @@ function App() {
     setAuth({});
   };
 
+  const register = async (credentials) => {
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(credentials),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.ok) {
+      const json = await response.json();
+      window.localStorage.setItem("token", json.token);
+      attemptLoginWithToken();
+    } else {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+  };
+
   return (
     <>
       {!auth.id ? (
-        <Login login={login} />
+        <>
+          <Login login={login} />
+          <Register register={register} />
+        </>
       ) : (
         <button onClick={logout}>Logout {auth.username}</button>
       )}

@@ -10,7 +10,9 @@ const {
   destroyFavorite,
   authenticate,
   findUserWithToken,
+  registerUser,
 } = require("./db");
+
 const express = require("express");
 const app = express();
 app.use(express.json());
@@ -84,6 +86,15 @@ app.post("/api/users/:id/favorites", isLoggedIn, async (req, res, next) => {
         product_id: req.body.product_id,
       })
     );
+  } catch (ex) {
+    next(ex);
+  }
+});
+
+app.post("/api/auth/register", async (req, res, next) => {
+  try {
+    const user = await registerUser(req.body);
+    res.status(201).send(user);
   } catch (ex) {
     next(ex);
   }
