@@ -80,7 +80,7 @@ const destroyFavorite = async ({ user_id, id }) => {
 
 const authenticate = async ({ username, password }) => {
   const SQL = `
-  SELECT id, username, password FROM users WHERE username=$1;
+    SELECT id, username, password FROM users WHERE username=$1;
   `;
   const response = await client.query(SQL, [username]);
   if (
@@ -91,14 +91,14 @@ const authenticate = async ({ username, password }) => {
     error.status = 401;
     throw error;
   }
-  const token = await jwt.sign({ id: response.rows[0].id }, JWT);
-  return { token: response.rows[0].id };
+  const token = await jwt.sign({ id: response.rows[0].id }, JWT_SECRET);
+  return { token };
 };
 
 const findUserWithToken = async (token) => {
   let id;
   try {
-    const payload = await jwt.verify(token, JWT);
+    const payload = await jwt.verify(token, JWT_SECRET);
     id = payload.id;
   } catch (ex) {
     const error = Error("not authorized");

@@ -28,8 +28,9 @@ app.use(
 );
 
 const isLoggedIn = async (req, res, next) => {
+  console.log("iSlogginmensaje");
   try {
-    req.user = await findUserByToken(req.headers.authorization);
+    req.user = await findUserWithToken(req.headers.authorization);
     next();
   } catch (ex) {
     next(ex);

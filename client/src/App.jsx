@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 import "./index.css";
 
+// Login component
 const Login = ({ login }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -78,18 +79,18 @@ function App() {
 
   const attemptLoginWithToken = async () => {
     const token = window.localStorage.getItem("token");
-    if (token) {
-      const response = await fetch(`/api/auth/me`, {
-        headers: {
-          authorization: token,
-        },
-      });
-      const json = await response.json();
-      if (response.ok) {
-        setAuth(json);
-      } else {
-        window.localStorage.removeItem("token");
-      }
+    const response = await fetch(`/api/auth/me`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const json = await response.json();
+    if (response.ok) {
+      setAuth(json);
+    } else {
+      window.localStorage.removeItem("token");
     }
   };
 
@@ -131,12 +132,13 @@ function App() {
       },
     });
 
-    const json = await response.json();
     if (response.ok) {
+      const json = await response.json();
       window.localStorage.setItem("token", json.token);
       attemptLoginWithToken();
     } else {
-      console.log(json);
+      const error = await response.json();
+      throw new Error(error.message);
     }
   };
 
@@ -230,3 +232,24 @@ function App() {
 }
 
 export default App;
+
+// const attemptLoginWithToken = async () => {
+//   const token = window.localStorage.getItem("token");
+//   const response = await fetch(`/api/auth/me`, {
+//     method: "POST",
+//     body: {
+//       username: "hola",
+//       password: "password",
+//     },
+//     headers: {
+//       "Content-Type": "application/json",
+//       // 'Content-Type': 'application/x-www-form-urlencoded',
+//     },
+//   });
+//   const json = await response.json();
+//   if (response.ok) {
+//     setAuth(json);
+//   } else {
+//     window.localStorage.removeItem("token");
+//   }
+// };
