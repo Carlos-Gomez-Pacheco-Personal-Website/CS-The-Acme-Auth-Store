@@ -202,10 +202,10 @@ function App() {
   return (
     <>
       {!auth.id ? (
-        <>
+        <div className="auth-container">
           <Login login={login} />
           <Register register={register} />
-        </>
+        </div>
       ) : (
         <button onClick={logout}>Logout {auth.username}</button>
       )}
