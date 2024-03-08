@@ -10,7 +10,6 @@ const {
   destroyFavorite,
   authenticate,
   findUserWithToken,
-  registerUser,
 } = require("./db");
 
 const express = require("express");
@@ -28,7 +27,6 @@ app.use(
 );
 
 const isLoggedIn = async (req, res, next) => {
-  console.log("iSlogginmensaje");
   try {
     req.user = await findUserWithToken(req.headers.authorization);
     next();
@@ -61,13 +59,8 @@ app.get("/api/users", async (req, res, next) => {
   }
 });
 
-app.get("/api/users/:id/favorites", isLoggedIn, async (req, res, next) => {
+app.get("/api/users/:id/favorites", async (req, res, next) => {
   try {
-    if (req.params.id !== req.user.id) {
-      const error = Error("not authorized");
-      error.status = 401;
-      throw error;
-    }
     res.send(await fetchFavorites(req.params.id));
   } catch (ex) {
     next(ex);
@@ -76,11 +69,6 @@ app.get("/api/users/:id/favorites", isLoggedIn, async (req, res, next) => {
 
 app.post("/api/users/:id/favorites", isLoggedIn, async (req, res, next) => {
   try {
-    if (req.params.id !== req.user.id) {
-      const error = Error("not authorized");
-      error.status = 401;
-      throw error;
-    }
     res.status(201).send(
       await createFavorite({
         user_id: req.params.id,
@@ -94,8 +82,7 @@ app.post("/api/users/:id/favorites", isLoggedIn, async (req, res, next) => {
 
 app.post("/api/auth/register", async (req, res, next) => {
   try {
-    const user = await registerUser(req.body);
-    res.status(201).send(user);
+    res.send(await createUser(req.body));
   } catch (ex) {
     next(ex);
   }
@@ -106,11 +93,6 @@ app.delete(
   isLoggedIn,
   async (req, res, next) => {
     try {
-      if (req.params.userId !== req.user.id) {
-        const error = Error("not authorized");
-        error.status = 401;
-        throw error;
-      }
       await destroyFavorite({ user_id: req.params.user_id, id: req.params.id });
       res.sendStatus(204);
     } catch (ex) {
@@ -144,10 +126,10 @@ const init = async () => {
 
   const [moe, lucy, ethyl, curly, foo, bar, bazz, quq, fip] = await Promise.all(
     [
-      createUser({ username: "moe", password: "m_pw" }),
-      createUser({ username: "lucy", password: "l_pw" }),
-      createUser({ username: "ethyl", password: "e_pw" }),
-      createUser({ username: "curly", password: "c_pw" }),
+      createUser({ username: "moe", password: "123456" }),
+      createUser({ username: "lucy", password: "123457" }),
+      createUser({ username: "ethyl", password: "123458" }),
+      createUser({ username: "curly", password: "123459" }),
       createProduct({ name: "foo" }),
       createProduct({ name: "bar" }),
       createProduct({ name: "bazz" }),
@@ -161,25 +143,10 @@ const init = async () => {
 
   console.log(await fetchFavorites(moe.id));
 
-  // const favorite = await createFavorite({
-  //   user_id: moe.id,
-  //   product_id: foo.id,
-  // });
-
-  const users = await fetchUsers();
-  const products = await fetchProducts();
-  for (let user of users) {
-    for (let product of products) {
-      const favorite = await createFavorite({
-        user_id: user.id,
-        product_id: product.id,
-      });
-      console.log(
-        `Created favorite for user ${user.username} with product ${product.name}`
-      );
-    }
-  }
-
+  const favorite = await createFavorite({
+    user_id: moe.id,
+    product_id: foo.id,
+  });
   app.listen(port, () => console.log(`listening on port ${port}`));
 };
 

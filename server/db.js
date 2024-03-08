@@ -5,7 +5,7 @@ const client = new pg.Client(
 const uuid = require("uuid");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const JWT = "1337";
+const JWT = process.env.JWT || "shhh";
 
 const createTables = async () => {
   const SQL = `
@@ -13,16 +13,18 @@ const createTables = async () => {
     DROP TABLE IF EXISTS users;
     DROP TABLE IF EXISTS products;
     CREATE TABLE users(
-      id UUID PRIMARY KEY,
+      id UUID DEFAULT gen_random_uuid(),
       username VARCHAR(20) UNIQUE NOT NULL,
-      password VARCHAR(255) NOT NULL
+      password VARCHAR(255) NOT NULL,
+      PRIMARY KEY (id)
     );
     CREATE TABLE products(
-      id UUID PRIMARY KEY,
-      name VARCHAR(20)
+      id UUID DEFAULT gen_random_uuid(),
+      name VARCHAR(20),
+      PRIMARY KEY (id)
     );
     CREATE TABLE favorites(
-      id UUID PRIMARY KEY,
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       user_id UUID REFERENCES users(id) NOT NULL,
       product_id UUID REFERENCES products(id) NOT NULL,
       CONSTRAINT unique_user_id_and_product_id UNIQUE (user_id, product_id)
@@ -32,18 +34,6 @@ const createTables = async () => {
 };
 
 const createUser = async ({ username, password }) => {
-  const SQL = `
-    INSERT INTO users(id, username, password) VALUES($1, $2, $3) RETURNING *
-  `;
-  const response = await client.query(SQL, [
-    uuid.v4(),
-    username,
-    await bcrypt.hash(password, 5),
-  ]);
-  return response.rows[0];
-};
-
-const registerUser = async ({ username, password }) => {
   const SQL = `
     INSERT INTO users(id, username, password) VALUES($1, $2, $3) RETURNING *
   `;
@@ -80,25 +70,27 @@ const destroyFavorite = async ({ user_id, id }) => {
 
 const authenticate = async ({ username, password }) => {
   const SQL = `
-    SELECT id, username, password FROM users WHERE username=$1;
+    SELECT id, password, username 
+    FROM users 
+    WHERE username=$1;
   `;
   const response = await client.query(SQL, [username]);
   if (
-    !response.rows.length ||
-    (await bcrypt.compare(password, response.rows[0].password)) === false
+    (!response.rows.length ||
+      (await bcrypt.compare(password, response.rows[0].password))) === false
   ) {
     const error = Error("not authorized");
     error.status = 401;
     throw error;
   }
-  const token = await jwt.sign({ id: response.rows[0].id }, JWT_SECRET);
-  return { token };
+  const token = await jwt.sign({ id: response.rows[0].id }, JWT);
+  return { token: token };
 };
 
 const findUserWithToken = async (token) => {
   let id;
   try {
-    const payload = await jwt.verify(token, JWT_SECRET);
+    const payload = await jwt.verify(token, JWT);
     id = payload.id;
   } catch (ex) {
     const error = Error("not authorized");
@@ -153,5 +145,4 @@ module.exports = {
   destroyFavorite,
   authenticate,
   findUserWithToken,
-  registerUser,
 };

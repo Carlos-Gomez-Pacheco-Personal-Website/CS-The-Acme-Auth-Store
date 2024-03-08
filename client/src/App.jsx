@@ -7,12 +7,12 @@ const Login = ({ login }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const submit = (ev) => {
+  const submitLogin = (ev) => {
     ev.preventDefault();
     login({ username, password });
   };
   return (
-    <form onSubmit={submit}>
+    <form onSubmit={submitLogin}>
       <input
         value={username}
         placeholder="username"
@@ -31,13 +31,13 @@ const Login = ({ login }) => {
 Login.propTypes = {
   login: PropTypes.func,
 };
-// Register
+// Register Component
 const Register = ({ register }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const submit = async (ev) => {
+  const submitRegister = async (ev) => {
     ev.preventDefault();
     try {
       await register({ username, password });
@@ -47,7 +47,7 @@ const Register = ({ register }) => {
   };
 
   return (
-    <form onSubmit={submit}>
+    <form onSubmit={submitRegister}>
       <input
         value={username}
         placeholder="username"
@@ -79,18 +79,18 @@ function App() {
 
   const attemptLoginWithToken = async () => {
     const token = window.localStorage.getItem("token");
-    const response = await fetch(`/api/auth/me`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const json = await response.json();
-    if (response.ok) {
-      setAuth(json);
-    } else {
-      window.localStorage.removeItem("token");
+    if (token) {
+      const response = await fetch(`/api/auth/me`, {
+        headers: {
+          authorization: token,
+        },
+      });
+      const json = await response.json();
+      if (response.ok) {
+        setAuth(json);
+      } else {
+        window.localStorage.removeItem("token");
+      }
     }
   };
 
@@ -108,6 +108,7 @@ function App() {
     const fetchFavorites = async () => {
       const response = await fetch(`/api/users/${auth.id}/favorites`, {
         headers: {
+          "Content-Type": "application/json",
           authorization: window.localStorage.getItem("token"),
         },
       });
@@ -131,12 +132,12 @@ function App() {
         "Content-Type": "application/json",
       },
     });
-
+    const json = await response.json();
     if (response.ok) {
-      const json = await response.json();
       window.localStorage.setItem("token", json.token);
       attemptLoginWithToken();
     } else {
+      console.log(json);
       const error = await response.json();
       throw new Error(error.message);
     }
@@ -189,13 +190,11 @@ function App() {
       },
     });
 
+    const json = await response.json();
     if (response.ok) {
-      const json = await response.json();
       window.localStorage.setItem("token", json.token);
-      attemptLoginWithToken();
     } else {
-      const error = await response.json();
-      throw new Error(error.message);
+      console.log(json);
     }
   };
 
@@ -232,24 +231,3 @@ function App() {
 }
 
 export default App;
-
-// const attemptLoginWithToken = async () => {
-//   const token = window.localStorage.getItem("token");
-//   const response = await fetch(`/api/auth/me`, {
-//     method: "POST",
-//     body: {
-//       username: "hola",
-//       password: "password",
-//     },
-//     headers: {
-//       "Content-Type": "application/json",
-//       // 'Content-Type': 'application/x-www-form-urlencoded',
-//     },
-//   });
-//   const json = await response.json();
-//   if (response.ok) {
-//     setAuth(json);
-//   } else {
-//     window.localStorage.removeItem("token");
-//   }
-// };
