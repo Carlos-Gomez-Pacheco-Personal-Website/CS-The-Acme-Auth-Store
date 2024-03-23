@@ -34,7 +34,7 @@ const isLoggedIn = async (req, res, next) => {
     next(ex);
   }
 };
-
+///// Login API
 app.post("/api/auth/login", async (req, res, next) => {
   try {
     res.send(await authenticate(req.body));
@@ -50,6 +50,7 @@ app.get("/api/auth/me", isLoggedIn, async (req, res, next) => {
     next(ex);
   }
 });
+////////////////////////////
 
 app.get("/api/users", async (req, res, next) => {
   try {
